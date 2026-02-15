@@ -3,6 +3,26 @@ import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { Download, BookOpen, Edit2, Calendar, User, ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const novel = await prisma.novel.findUnique({
+    where: { id },
+  });
+
+  if (!novel) return { title: "Roman Bulunamadı" };
+
+  return {
+    title: novel.title,
+    description: novel.description?.slice(0, 160) || `${novel.author} tarafından yazılan ${novel.title} romanını oku ve indir.`,
+    openGraph: {
+      title: `${novel.title} | Roman Oku & İndir`,
+      description: novel.description?.slice(0, 160) || `${novel.author} tarafından yazılan ${novel.title} romanını oku ve indir.`,
+      images: novel.coverUrl ? [novel.coverUrl] : [],
+    },
+  };
+}
 
 export default async function NovelDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,8 +36,29 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
 
   const isOwner = session?.user?.id === novel.uploaderId;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Book",
+    "name": novel.title,
+    "author": {
+      "@type": "Person",
+      "name": novel.author
+    },
+    "datePublished": novel.createdAt.toISOString(),
+    "description": novel.description,
+    "image": novel.coverUrl,
+    "publisher": {
+      "@type": "Organization",
+      "name": "Roman Oku"
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto py-6 md:py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Kütüphaneye Dön
       </Link>

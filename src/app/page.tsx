@@ -9,8 +9,25 @@ export default async function Home() {
     orderBy: { createdAt: "desc" },
   });
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Roman Oku & İndir",
+    "url": "https://romanoku.space",
+    "description": "En sevdiğiniz romanları okuyun ve indirin.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://romanoku.space/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <div className="space-y-8 md:space-y-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="flex flex-col gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Kütüphane</h1>
