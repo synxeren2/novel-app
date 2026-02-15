@@ -5,6 +5,7 @@ import { Download, BookOpen, Edit2, Calendar, User, ArrowLeft, Share2, Send } fr
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import AdBanner from "@/components/AdBanner";
+import Comments from "@/components/Comments";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -156,6 +157,10 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
             <p className="text-gray-300 leading-relaxed text-base md:text-lg whitespace-pre-wrap">
               {novel.description || "Bu roman için henüz bir açıklama girilmemiş."}
             </p>
+          </div>
+
+          <div className="pt-12">
+            <Comments novelId={id} session={session} />
           </div>
         </div>
       </div>
