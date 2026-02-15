@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Providers } from "@/components/Providers";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: {
@@ -58,6 +59,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9392607672052736"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="antialiased bg-black text-white min-h-screen font-sans">
         <Providers>
           <Navbar />
