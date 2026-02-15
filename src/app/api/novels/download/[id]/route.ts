@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 
 export async function GET(
   req: Request,
@@ -14,26 +12,15 @@ export async function GET(
       where: { id },
     });
 
-    if (!novel) {
-      return NextResponse.json({ error: "Roman bulunamadı" }, { status: 404 });
-    }
-
-    const filePath = path.join(process.cwd(), "public", novel.fileUrl);
-    
-    if (!fs.existsSync(filePath)) {
+    if (!novel || !novel.fileUrl) {
       return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 404 });
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
-    const fileName = `${novel.title}.${novel.fileType}`;
-
-    return new NextResponse(fileBuffer, {
-      headers: {
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(fileName)}"`,
-        "Content-Type": "application/octet-stream",
-      },
-    });
+    // Supabase URL'sini doğrudan yönlendiriyoruz. 
+    // Bu sayede tarayıcı dosyayı Supabase üzerinden indirecektir.
+    return NextResponse.redirect(novel.fileUrl);
   } catch (error) {
+    console.error("İndirme hatası:", error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
   }
 }
