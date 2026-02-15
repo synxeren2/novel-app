@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import path from "path";
+import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from "uuid";
 
 export async function GET(
@@ -35,6 +34,7 @@ export async function PATCH(
   try {
     const novel = await prisma.novel.findUnique({ where: { id } });
     if (!novel) return NextResponse.json({ error: "Bulunamadı" }, { status: 404 });
+    
     if (novel.uploaderId !== session.user.id) {
       return NextResponse.json({ error: "Bu işlem için yetkiniz yok" }, { status: 403 });
     }
@@ -47,13 +47,22 @@ export async function PATCH(
 
     let coverUrl = novel.coverUrl;
 
+    // Eğer yeni bir kapak resmi yüklendiyse Supabase'e gönder
     if (coverFile && coverFile.size > 0) {
-      const coverBytes = await coverFile.arrayBuffer();
-      const coverExtension = path.extname(coverFile.name);
-      const coverName = `${uuidv4()}${coverExtension}`;
-      const uploadDir = path.join(process.cwd(), "public/uploads");
-      await writeFile(path.join(uploadDir, coverName), Buffer.from(coverBytes));
-      coverUrl = `/uploads/${coverName}`;
+      const coverExtension = coverFile.name.split(".").pop();
+      const coverName = `${uuidv4()}.${coverExtension}`;
+      
+      const { data: coverData, error: coverError } = await supabase.storage
+        .from("novels")
+        .upload(`covers/${coverName}`, coverFile);
+
+      if (coverError) throw coverError;
+
+      const { data: { publicUrl: cUrl } } = supabase.storage
+        .from("novels")
+        .getPublicUrl(`covers/${coverName}`);
+      
+      coverUrl = cUrl;
     }
 
     const updated = await prisma.novel.update({
@@ -61,14 +70,15 @@ export async function PATCH(
       data: {
         title: title || novel.title,
         author: author || novel.author,
-        description: description || novel.description,
+        description: description !== null ? description : novel.description,
         coverUrl,
       },
     });
 
     return NextResponse.json(updated);
-  } catch (error) {
-    return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Güncelleme hatası:", error);
+    return NextResponse.json({ error: error.message || "Sunucu hatası" }, { status: 500 });
   }
 }
 
@@ -91,6 +101,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Bu işlem için yetkiniz yok" }, { status: 403 });
     }
 
+    // İsteğe bağlı: Supabase Storage'daki dosyaları da silebiliriz
+    // Ama şimdilik sadece DB'den siliyoruz
     await prisma.novel.delete({
       where: { id },
     });
