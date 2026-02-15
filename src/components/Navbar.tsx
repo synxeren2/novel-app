@@ -13,7 +13,7 @@ export default function Navbar() {
     <nav className="border-b border-white/10 bg-black/80 backdrop-blur-md py-4 px-4 md:px-6 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2 text-lg md:text-xl font-bold tracking-tighter shrink-0">
-          <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <img src="/logo.png" alt="Roman Oku Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
           <span>ROMAN OKU</span>
         </Link>
 
