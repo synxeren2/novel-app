@@ -29,13 +29,15 @@ export default function Navbar() {
                 <span>Ekle</span>
               </Link>
               <div className="flex items-center gap-4 border-l border-white/20 pl-6">
-                <span className="text-sm text-gray-400 truncate max-w-[150px]">{session.user?.email}</span>
+                <Link href="/profile" className="text-sm text-gray-400 hover:text-white transition-colors truncate max-w-[150px] flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  {session.user?.name || "Profilim"}
+                </Link>
                 <button 
                   onClick={() => signOut()}
-                  className="flex items-center gap-1 hover:text-red-400 transition-colors"
+                  className="flex items-center gap-1 hover:text-red-400 transition-colors text-gray-500"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Çıkış</span>
                 </button>
               </div>
             </>
@@ -68,6 +70,9 @@ export default function Navbar() {
             <>
               <Link href="/upload" onClick={() => setIsOpen(false)} className="flex items-center gap-2 text-xl">
                 <Upload className="w-5 h-5" /> Ekle
+              </Link>
+              <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 text-xl">
+                <User className="w-5 h-5" /> Profilim
               </Link>
               <div className="pt-4 border-t border-white/10 flex flex-col gap-4">
                 <span className="text-sm text-gray-500">{session.user?.email}</span>
