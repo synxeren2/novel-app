@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Roman Oku Ekibi" }],
   creator: "Roman Oku",
   publisher: "Roman Oku",
+  other: {
+    "google-adsense-account": "ca-pub-9392607672052736",
+  },
   formatDetection: {
     email: false,
     address: false,
