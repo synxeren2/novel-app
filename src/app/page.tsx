@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Book, Search } from "lucide-react";
+import AdBanner from "@/components/AdBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <AdBanner />
       <header className="flex flex-col gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Kütüphane</h1>

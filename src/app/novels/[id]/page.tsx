@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Download, BookOpen, Edit2, Calendar, User, ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import AdBanner from "@/components/AdBanner";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -117,6 +118,8 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
               <Download className="w-5 h-5 md:w-6 md:h-6" /> Dosyayı İndir
             </a>
           </div>
+
+          <AdBanner />
 
           <div className="space-y-4 pt-6 md:pt-8">
             <h2 className="text-xl md:text-2xl font-bold border-l-4 border-white pl-4">Özet</h2>
