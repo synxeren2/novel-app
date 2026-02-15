@@ -11,6 +11,36 @@ export default function UploadPage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const router = useRouter();
 
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  async function generateThumbnail(file: File): Promise<Blob | null> {
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 0.5 });
+      
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      if (!context) return null;
+      
+      await page.render({ canvasContext: context, viewport }).promise;
+      
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), "image/png");
+      });
+    } catch (err) {
+      console.error("Thumbnail generation failed:", err);
+      return null;
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -18,6 +48,16 @@ export default function UploadPage() {
     setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
+    const file = formData.get("file") as File;
+    const cover = formData.get("cover") as File;
+
+    // Eğer kapak resmi yoksa ve dosya bir PDF ise otomatik oluştur
+    if ((!cover || cover.size === 0) && file.type === "application/pdf") {
+      const thumbnailBlob = await generateThumbnail(file);
+      if (thumbnailBlob) {
+        formData.set("cover", new File([thumbnailBlob], "auto-cover.png", { type: "image/png" }));
+      }
+    }
     
     try {
       const res = await fetch("/api/novels", {
