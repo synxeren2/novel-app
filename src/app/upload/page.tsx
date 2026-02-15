@@ -99,6 +99,20 @@ export default function UploadPage() {
               <input name="author" type="text" className="w-full bg-black border border-white/20 rounded-xl p-3 md:p-4 outline-none focus:border-white transition-colors text-sm" required />
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1 text-gray-400">Kategori</label>
+              <select name="category" className="w-full bg-black border border-white/20 rounded-xl p-3 md:p-4 outline-none focus:border-white transition-colors text-sm appearance-none cursor-pointer">
+                <option value="Klasik">Klasik</option>
+                <option value="Aşk">Aşk / Romantik</option>
+                <option value="Korku">Korku / Gerilim</option>
+                <option value="Bilim Kurgu">Bilim Kurgu</option>
+                <option value="Polisiye">Polisiye</option>
+                <option value="Kişisel Gelişim">Kişisel Gelişim</option>
+                <option value="Dram">Dram</option>
+                <option value="Macer">Macera</option>
+                <option value="Diğer">Diğer</option>
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1 text-gray-400">Açıklama</label>
               <textarea name="description" rows={5} className="w-full bg-black border border-white/20 rounded-xl p-3 md:p-4 outline-none focus:border-white transition-colors resize-none text-sm" placeholder="Özet..." />
             </div>

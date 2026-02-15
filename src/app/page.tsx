@@ -5,8 +5,13 @@ import AdBanner from "@/components/AdBanner";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+const CATEGORIES = ["Hepsi", "Klasik", "Aşk", "Korku", "Bilim Kurgu", "Polisiye", "Kişisel Gelişim", "Dram", "Macera", "Diğer"];
+
+export default async function Home({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
+  const { cat } = await searchParams;
+  
   const novels = await prisma.novel.findMany({
+    where: cat && cat !== "Hepsi" ? { category: { contains: cat } } : {},
     orderBy: { createdAt: "desc" },
   });
 
@@ -44,6 +49,23 @@ export default async function Home() {
           />
         </div>
       </header>
+
+      {/* Categories Horizontal Scroll */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
+        {CATEGORIES.map((category) => (
+          <Link
+            key={category}
+            href={category === "Hepsi" ? "/" : `/?cat=${category}`}
+            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
+              (cat === category || (!cat && category === "Hepsi"))
+                ? "bg-white text-black border-white"
+                : "bg-white/5 text-gray-400 border-white/10 hover:border-white/30"
+            }`}
+          >
+            {category}
+          </Link>
+        ))}
+      </div>
 
       {novels.length === 0 ? (
         <div className="border border-dashed border-white/10 rounded-3xl p-10 md:p-20 text-center space-y-4">

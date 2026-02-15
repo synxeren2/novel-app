@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     const title = formData.get("title") as string;
     const author = formData.get("author") as string;
     const description = formData.get("description") as string;
+    const category = formData.get("category") as string || "Genel";
 
     if (!file || !title) {
       return NextResponse.json({ error: "Eksik bilgi" }, { status: 400 });
@@ -63,6 +64,7 @@ export async function POST(req: Request) {
         coverUrl,
         fileUrl,
         fileType: fileExtension || "pdf",
+        category,
         uploaderId: session.user.id!,
       },
     });
