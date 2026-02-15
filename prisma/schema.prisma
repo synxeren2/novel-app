@@ -62,14 +62,40 @@ model VerificationToken {
 }
 
 model Novel {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   author      String?
   description String?
   coverUrl    String?
   fileUrl     String
   fileType    String
+  category    String     @default("Genel")
+  views       Int        @default(0)
+  downloads   Int        @default(0)
   uploaderId  String
-  uploader    User     @relation(fields: [uploaderId], references: [id])
-  createdAt   DateTime @default(now())
+  uploader    User       @relation(fields: [uploaderId], references: [id])
+  comments    Comment[]
+  favorites   Favorite[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  rating    Int      @default(5)
+  novelId   String
+  novel     Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  userId    String
+  userName  String
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  id      String @id @default(cuid())
+  userId  String
+  novelId String
+  novel   Novel  @relation(fields: [novelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, novelId])
 }

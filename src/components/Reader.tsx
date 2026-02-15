@@ -11,9 +11,10 @@ pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.vers
 
 interface ReaderProps {
   fileUrl: string;
+  novelId: string;
 }
 
-export default function Reader({ fileUrl }: ReaderProps) {
+export default function Reader({ fileUrl, novelId }: ReaderProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(0.8);
@@ -21,6 +22,21 @@ export default function Reader({ fileUrl }: ReaderProps) {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Sayfayı yükle
+  useEffect(() => {
+    const savedPage = localStorage.getItem(`novel_page_${novelId}`);
+    if (savedPage) {
+      setPageNumber(parseInt(savedPage));
+    }
+  }, [novelId]);
+
+  // Sayfayı kaydet
+  useEffect(() => {
+    if (pageNumber > 0) {
+      localStorage.setItem(`novel_page_${novelId}`, pageNumber.toString());
+    }
+  }, [pageNumber, novelId]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);

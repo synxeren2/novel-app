@@ -36,7 +36,7 @@ export default async function ReadNovel({ params }: { params: Promise<{ id: stri
 
       {/* Custom Reader Component */}
       <div className="flex-1 relative overflow-hidden">
-        <Reader fileUrl={novel.fileUrl} />
+        <Reader fileUrl={novel.fileUrl} novelId={id} />
       </div>
     </div>
   );

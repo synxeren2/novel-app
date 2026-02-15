@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import Link from "next/link";
-import { Download, BookOpen, Edit2, Calendar, User, ArrowLeft } from "lucide-react";
+import { Download, BookOpen, Edit2, Calendar, User, ArrowLeft, Share2, Send } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import AdBanner from "@/components/AdBanner";
@@ -29,13 +29,17 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const session = await auth();
   
-  const novel = await prisma.novel.findUnique({
+  // İzlenme sayısını artır
+  const novel = await prisma.novel.update({
     where: { id },
-  });
+    data: { views: { increment: 1 } }
+  }).catch(() => null);
 
   if (!novel) notFound();
 
   const isOwner = session?.user?.id === novel.uploaderId;
+  const shareUrl = `https://romanoku.space/novels/${id}`;
+  const shareText = `${novel.title} romanını hemen oku!`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -97,6 +101,9 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 md:w-5 md:h-5" /> {new Date(novel.createdAt).toLocaleDateString('tr-TR')}
               </div>
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 md:w-5 md:h-5" /> {novel.views} İzlenme
+              </div>
               <div className="bg-white/10 px-2 py-0.5 rounded text-[10px] md:text-xs uppercase font-bold tracking-widest text-white">
                 {novel.fileType}
               </div>
@@ -116,6 +123,29 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
               download
             >
               <Download className="w-5 h-5 md:w-6 md:h-6" /> Dosyayı İndir
+            </a>
+          </div>
+
+          {/* Social Share */}
+          <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Paylaş:</span>
+            <a 
+              href={`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] rounded-lg transition-colors"
+              title="WhatsApp'ta Paylaş"
+            >
+              <Share2 className="w-5 h-5" />
+            </a>
+            <a 
+              href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-[#0088cc]/10 hover:bg-[#0088cc]/20 text-[#0088cc] rounded-lg transition-colors"
+              title="Telegram'da Paylaş"
+            >
+              <Send className="w-5 h-5" />
             </a>
           </div>
 
