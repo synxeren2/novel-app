@@ -22,8 +22,19 @@ model User {
   accounts      Account[]
   sessions      Session[]
   novels        Novel[]
+  requests      Request[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
+}
+
+model Request {
+  id        String   @id @default(cuid())
+  title     String
+  author    String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("Beklemede") // Beklemede, Tamamlandı
+  createdAt DateTime @default(now())
 }
 
 model Account {

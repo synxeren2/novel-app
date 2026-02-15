@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import AdBanner from "@/components/AdBanner";
 import Comments from "@/components/Comments";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -37,6 +38,15 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
   }).catch(() => null);
 
   if (!novel) notFound();
+
+  // Benzer romanları getir
+  const relatedNovels = await prisma.novel.findMany({
+    where: { 
+      category: novel.category,
+      id: { not: id }
+    },
+    take: 4,
+  });
 
   const isOwner = session?.user?.id === novel.uploaderId;
   const shareUrl = `https://romanoku.space/novels/${id}`;
@@ -88,11 +98,14 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
               <h1 className="text-3xl md:text-5xl font-black uppercase leading-tight tracking-tighter">{novel.title}</h1>
-              {isOwner && (
-                <Link href={`/novels/${id}/edit`} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors text-xs md:text-sm font-bold shrink-0">
-                  <Edit2 className="w-4 h-4" /> Düzenle
-                </Link>
-              )}
+              <div className="flex items-center gap-2">
+                <FavoriteButton novelId={id} />
+                {isOwner && (
+                  <Link href={`/novels/${id}/edit`} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-3 rounded-xl transition-colors text-xs md:text-sm font-bold shrink-0 border border-white/5">
+                    <Edit2 className="w-4 h-4" /> Düzenle
+                  </Link>
+                )}
+              </div>
             </div>
             
             <div className="flex flex-wrap gap-4 md:gap-6 text-gray-400 font-medium text-sm">
@@ -162,6 +175,28 @@ export default async function NovelDetail({ params }: { params: Promise<{ id: st
           <div className="pt-12">
             <Comments novelId={id} session={session} />
           </div>
+
+          {relatedNovels.length > 0 && (
+            <div className="pt-12 space-y-6">
+              <h2 className="text-xl md:text-2xl font-bold border-l-4 border-white pl-4 uppercase tracking-tighter">İlgini Çekebilir</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {relatedNovels.map((rel) => (
+                  <Link key={rel.id} href={`/novels/${rel.id}`} className="group space-y-2">
+                    <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10 group-hover:ring-white/30 transition-all">
+                      {rel.coverUrl ? (
+                        <img src={rel.coverUrl} alt={rel.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <BookOpen className="w-6 h-6 text-zinc-800" />
+                        </div>
+                      )}
+                    </div>
+                    <h4 className="text-xs font-bold leading-tight line-clamp-2 uppercase">{rel.title}</h4>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -20,6 +20,7 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
           <Link href="/" className="hover:text-gray-400 transition-colors">Ana Sayfa</Link>
+          <Link href="/requests" className="hover:text-gray-400 transition-colors">İstekler</Link>
           
           {session ? (
             <>
@@ -62,6 +63,7 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-black border-b border-white/10 p-6 space-y-6 flex flex-col animate-in fade-in slide-in-from-top-4">
           <Link href="/" onClick={() => setIsOpen(false)} className="text-xl font-bold">Ana Sayfa</Link>
+          <Link href="/requests" onClick={() => setIsOpen(false)} className="text-xl font-bold">İstek Paneli</Link>
           {session ? (
             <>
               <Link href="/upload" onClick={() => setIsOpen(false)} className="flex items-center gap-2 text-xl">
