@@ -30,7 +30,12 @@ export default function UploadPage() {
       
       if (!context) return null;
       
-      await page.render({ canvasContext: context, viewport }).promise;
+      await page.render({ 
+        canvasContext: context, 
+        viewport: viewport,
+        // @ts-ignore - Some versions of pdfjs might have slightly different types
+        canvas: canvas
+      }).promise;
       
       return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob), "image/png");
