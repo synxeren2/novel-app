@@ -125,6 +125,20 @@ export default function EditNovel({ params }: { params: Promise<{ id: string }> 
               <input name="author" type="text" defaultValue={novel.author} className="w-full bg-black border border-white/20 rounded-lg p-3 outline-none focus:border-white transition-colors" required />
             </div>
             <div>
+              <label className="block text-sm font-medium mb-1 text-gray-400">Kategori</label>
+              <select name="category" defaultValue={novel.category} className="w-full bg-black border border-white/20 rounded-lg p-3 outline-none focus:border-white transition-colors appearance-none cursor-pointer">
+                <option value="Klasik">Klasik</option>
+                <option value="Aşk">Aşk / Romantik</option>
+                <option value="Korku">Korku / Gerilim</option>
+                <option value="Bilim Kurgu">Bilim Kurgu</option>
+                <option value="Polisiye">Polisiye</option>
+                <option value="Kişisel Gelişim">Kişisel Gelişim</option>
+                <option value="Dram">Dram</option>
+                <option value="Macera">Macera</option>
+                <option value="Diğer">Diğer</option>
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium mb-1 text-gray-400">Açıklama</label>
               <textarea name="description" rows={6} defaultValue={novel.description} className="w-full bg-black border border-white/20 rounded-lg p-3 outline-none focus:border-white transition-colors resize-none" />
             </div>

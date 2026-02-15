@@ -43,6 +43,7 @@ export async function PATCH(
     const title = formData.get("title") as string;
     const author = formData.get("author") as string;
     const description = formData.get("description") as string;
+    const category = formData.get("category") as string;
     const coverFile = formData.get("cover") as File | null;
 
     let coverUrl = novel.coverUrl;
@@ -71,6 +72,7 @@ export async function PATCH(
         title: title || novel.title,
         author: author || novel.author,
         description: description !== null ? description : novel.description,
+        category: category || novel.category,
         coverUrl,
       },
     });
