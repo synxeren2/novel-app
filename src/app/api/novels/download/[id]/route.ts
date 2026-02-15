@@ -16,9 +16,21 @@ export async function GET(
       return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 404 });
     }
 
-    // Supabase URL'sini doğrudan yönlendiriyoruz. 
-    // Bu sayede tarayıcı dosyayı Supabase üzerinden indirecektir.
-    return NextResponse.redirect(novel.fileUrl);
+    // Dosyayı Supabase'den çekiyoruz
+    const response = await fetch(novel.fileUrl);
+    const blob = await response.blob();
+
+    // Dosya adını güvenli hale getiriyoruz (Türkçe karakter vb. sorun olmaması için)
+    const safeTitle = novel.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const fileName = `${safeTitle}.${novel.fileType}`;
+
+    // Dosyayı indirme başlıklarıyla geri döndürüyoruz
+    return new NextResponse(blob, {
+      headers: {
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "Content-Type": response.headers.get("Content-Type") || "application/pdf",
+      },
+    });
   } catch (error) {
     console.error("İndirme hatası:", error);
     return NextResponse.json({ error: "Sunucu hatası" }, { status: 500 });
