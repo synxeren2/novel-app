@@ -12,11 +12,11 @@ export default function Navbar() {
   return (
     <nav className="border-b border-white/10 bg-black/80 backdrop-blur-md py-4 px-4 md:px-6 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2 text-lg md:text-xl font-bold tracking-tighter shrink-0">
+        <Link href="/" className="flex items-center gap-3 text-lg md:text-xl font-bold tracking-tighter shrink-0">
           <img
             src="/romanoku.space-logo.png"
             alt="romanoku.space"
-            className="h-10 md:h-12 w-auto object-contain"
+            className="h-12 md:h-16 w-auto max-w-[220px] object-contain"
           />
         </Link>
 
