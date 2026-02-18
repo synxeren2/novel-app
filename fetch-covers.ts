@@ -1,6 +1,5 @@
 import { prisma } from './src/lib/prisma';
 import { supabase } from './src/lib/supabase';
-import fetch from 'node-fetch';
 
 async function fetchAndUploadCover(novel: any) {
   const query = encodeURIComponent(`${novel.title} ${novel.author}`);
