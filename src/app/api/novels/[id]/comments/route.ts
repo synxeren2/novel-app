@@ -14,7 +14,7 @@ export async function POST(
   }
 
   try {
-    const { content, rating } = await req.json();
+    const { content, rating, parentId } = await req.json();
 
     if (!content) {
       return NextResponse.json({ error: "Yorum içeriği boş olamaz" }, { status: 400 });
@@ -22,11 +22,12 @@ export async function POST(
 
     const comment = await prisma.comment.create({
       data: {
-        content,
+        content: content,
         rating: Number(rating) || 5,
-        novelId,
+        novelId: novelId,
         userId: session.user.id!,
         userName: session.user.name || session.user.email?.split('@')[0] || "Anonim",
+        parentId: parentId || null,
       },
     });
 
@@ -44,7 +45,12 @@ export async function GET(
 
   try {
     const comments = await prisma.comment.findMany({
-      where: { novelId },
+      where: { novelId, parentId: null },
+      include: {
+        replies: {
+          orderBy: { createdAt: "asc" },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(comments);

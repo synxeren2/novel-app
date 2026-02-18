@@ -28,6 +28,27 @@ export async function GET() {
       }
     });
 
+    // Okuma ilerlemelerini getir
+    const readingProgress = await prisma.readingProgress.findMany({
+      where: { userId },
+      include: {
+        novel: {
+          select: {
+            id: true,
+            title: true,
+            coverUrl: true,
+            author: true,
+          }
+        }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const reading = readingProgress.filter(p => p.status === 'READING').map(p => ({...p.novel, progress: p.page, updatedAt: p.updatedAt}));
+    const completed = readingProgress.filter(p => p.status === 'COMPLETED').map(p => ({...p.novel, updatedAt: p.updatedAt}));
+    const onHold = readingProgress.filter(p => p.status === 'ON_HOLD').map(p => ({...p.novel, progress: p.page, updatedAt: p.updatedAt}));
+    const dropped = readingProgress.filter(p => p.status === 'DROPPED').map(p => ({...p.novel, progress: p.page, updatedAt: p.updatedAt}));
+
     // Kullanıcının yüklediği kitapları getir
     const uploadsCount = await prisma.novel.count({
       where: { uploaderId: userId }
@@ -44,6 +65,10 @@ export async function GET() {
 
     return NextResponse.json({
       favorites: favoriteNovels,
+      reading,
+      completed,
+      onHold,
+      dropped,
       stats: {
         totalFavorites: favorites.length,
         totalUploads: uploadsCount,

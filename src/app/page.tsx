@@ -1,17 +1,41 @@
 import { prisma } from "@/lib/prisma";
 import AdBanner from "@/components/AdBanner";
 import NovelGrid from "@/components/NovelGrid";
+import HeroNovel from "@/components/HeroNovel";
 
 export const dynamic = "force-dynamic";
 
 const CATEGORIES = ["Hepsi", "Klasik", "Aşk", "Korku", "Bilim Kurgu", "Polisiye", "Kişisel Gelişim", "Dram", "Macera", "Diğer"];
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
-  const { cat } = await searchParams;
+export default async function Home({ searchParams }: { searchParams: Promise<{ cat?: string, sort?: string }> }) {
+  const { cat, sort } = await searchParams;
+
+  let orderBy: any = { createdAt: "desc" };
+
+  if (sort === "popular") {
+    orderBy = { views: "desc" };
+  } else if (sort === "favorites") {
+    orderBy = { favorites: { _count: "desc" } };
+  } else if (sort === "oldest") {
+    orderBy = { createdAt: "asc" };
+  }
   
+  // Öne çıkan kitap (En son yüklenen veya rastgele)
+  const featuredNovel = await prisma.novel.findFirst({
+    orderBy: { views: 'desc' },
+    select: {
+      id: true,
+      title: true,
+      author: true,
+      description: true,
+      coverUrl: true,
+      category: true,
+    }
+  });
+
   const novels = await prisma.novel.findMany({
     where: cat && cat !== "Hepsi" ? { category: { contains: cat } } : {},
-    orderBy: { createdAt: "desc" },
+    orderBy,
     select: {
       id: true,
       title: true,
@@ -41,6 +65,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <AdBanner />
+      
+      {!cat && featuredNovel && <HeroNovel novel={featuredNovel} />}
       
       <NovelGrid 
         initialNovels={novels} 

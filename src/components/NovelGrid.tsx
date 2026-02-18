@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Book, Search } from "lucide-react";
+import { Book, Search, Filter } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 interface Novel {
   id: string;
@@ -19,12 +20,21 @@ interface NovelGridProps {
 
 export default function NovelGrid({ initialNovels, categories, currentCat }: NovelGridProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const currentSort = searchParams.get("sort") || "newest";
+
+  const sortOptions = [
+    { id: "newest", label: "En Yeni" },
+    { id: "popular", label: "Popüler" },
+    { id: "favorites", label: "En Beğenilen" },
+    { id: "oldest", label: "En Eski" },
+  ];
 
   const filteredNovels = useMemo(() => {
     return initialNovels.filter((novel) => {
-      const matchesSearch = 
+      const matchesSearch =
         novel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        novel.author?.toLowerCase().includes(searchTerm.toLowerCase());
+        (novel.author && novel.author.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesSearch;
     });
   }, [searchTerm, initialNovels]);
@@ -33,14 +43,16 @@ export default function NovelGrid({ initialNovels, categories, currentCat }: Nov
     <div className="space-y-8 md:space-y-12">
       <header className="flex flex-col gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Kütüphane</h1>
+          <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+            Kütüphane
+          </h1>
           <p className="text-gray-400 text-sm md:text-base">Yeni dünyaları keşfedin.</p>
         </div>
         <div className="relative w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-          <input 
-            type="text" 
-            placeholder="Roman veya yazar ara..." 
+          <input
+            type="text"
+            placeholder="Roman veya yazar ara..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 outline-none focus:border-white/30 transition-colors text-sm"
@@ -48,49 +60,88 @@ export default function NovelGrid({ initialNovels, categories, currentCat }: Nov
         </div>
       </header>
 
-      {/* Categories Horizontal Scroll */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide -mx-2 px-2">
-        {categories.map((category) => (
-          <Link
-            key={category}
-            href={category === "Hepsi" ? "/" : `/?cat=${category}`}
-            className={`whitespace-nowrap px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
-              (currentCat === category || (!currentCat && category === "Hepsi"))
-                ? "bg-white text-black border-white"
-                : "bg-white/5 text-gray-400 border-white/10 hover:border-white/30"
-            }`}
-          >
-            {category}
-          </Link>
-        ))}
+      {/* Filters and Categories */}
+      <div className="space-y-4">
+        {/* Categories Horizontal Scroll */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2">
+          {categories.map((category) => (
+            <Link
+              key={category}
+              href={`/?cat=${category === "Hepsi" ? "" : category}&sort=${currentSort}`}
+              className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all border ${
+                currentCat === category || (!currentCat && category === "Hepsi")
+                  ? "bg-white text-black border-white"
+                  : "bg-white/5 text-gray-400 border-white/10 hover:border-white/30"
+              }`}
+            >
+              {category}
+            </Link>
+          ))}
+        </div>
+
+        {/* Sorting Options */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2">
+          <div className="flex items-center gap-2 px-2 text-gray-500 text-xs font-bold uppercase tracking-widest">
+            <Filter className="w-3 h-3" /> Sırala:
+          </div>
+          {sortOptions.map((option) => (
+            <Link
+              key={option.id}
+              href={`/?cat=${currentCat || ""}&sort=${option.id}`}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${
+                currentSort === option.id
+                  ? "bg-white/20 text-white"
+                  : "bg-white/5 text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {filteredNovels.length === 0 ? (
         <div className="border border-dashed border-white/10 rounded-3xl p-10 md:p-20 text-center space-y-4">
           <Book className="w-12 h-12 md:w-16 md:h-16 mx-auto text-gray-700" />
           <p className="text-gray-500 md:text-lg">
-            {searchTerm ? "Aramanıza uygun roman bulunamadı." : "Henüz hiç roman eklenmemiş."}
+            {searchTerm
+              ? "Aramanıza uygun roman bulunamadı."
+              : "Henüz hiç roman eklenmemiş."}
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-8">
           {filteredNovels.map((novel) => (
-            <Link key={novel.id} href={`/novels/${novel.id}`} className="group space-y-2 md:space-y-3">
-              <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10 group-hover:ring-white/30 transition-all shadow-xl md:shadow-2xl">
+            <Link
+              key={novel.id}
+              href={`/novels/${novel.id}`}
+              className="group space-y-2 md:space-y-3"
+            >
+              <div className="aspect-[2/3] relative rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10 group-hover:ring-white/30 transition-all shadow-xl md:shadow-2xl">
                 {novel.coverUrl ? (
-                  <img src={novel.coverUrl} alt={novel.title} className="w-full h-full object-cover" />
+                  <img
+                    src={novel.coverUrl}
+                    alt={novel.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-zinc-900">
                     <Book className="w-8 h-8 md:w-10 md:h-10 text-zinc-700" />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity flex items-end p-3 md:p-4">
-                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white">İncele</span>
+                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white">
+                    İncele
+                  </span>
                 </div>
               </div>
               <div>
-                <h3 className="text-sm md:text-base font-bold leading-tight line-clamp-2">{novel.title}</h3>
-                <p className="text-xs md:text-sm text-gray-500 truncate">{novel.author}</p>
+                <h3 className="text-sm md:text-base font-bold leading-tight line-clamp-2 group-hover:text-blue-400 transition-colors">
+                  {novel.title}
+                </h3>
+                <p className="text-xs md:text-sm text-gray-500 truncate">
+                  {novel.author}
+                </p>
               </div>
             </Link>
           ))}

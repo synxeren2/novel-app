@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Moon, Sun, Maximize, Minimize, FileWarning } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -15,6 +16,7 @@ interface ReaderProps {
 }
 
 export default function Reader({ fileUrl, novelId }: ReaderProps) {
+  const { data: session } = useSession();
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(0.8);
@@ -23,20 +25,59 @@ export default function Reader({ fileUrl, novelId }: ReaderProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Sayfayı yükle
+  // Sayfayı yükle (DB veya LocalStorage)
   useEffect(() => {
-    const savedPage = localStorage.getItem(`novel_page_${novelId}`);
-    if (savedPage) {
-      setPageNumber(parseInt(savedPage));
+    if (session?.user) {
+      // Giriş yapmış kullanıcı için DB'den çek
+      fetch(`/api/novels/${novelId}/progress`)
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error("Failed to fetch progress");
+        })
+        .then((data) => {
+          if (data && data.page) {
+            setPageNumber(data.page);
+          }
+        })
+        .catch((err) => console.error(err));
+    } else {
+      // Giriş yapmamış kullanıcı için LocalStorage'dan çek
+      const savedPage = localStorage.getItem(`novel_page_${novelId}`);
+      if (savedPage) {
+        setPageNumber(parseInt(savedPage));
+      }
     }
-  }, [novelId]);
+  }, [novelId, session]);
 
-  // Sayfayı kaydet
+  // Sayfayı kaydet (DB ve LocalStorage)
   useEffect(() => {
-    if (pageNumber > 0) {
-      localStorage.setItem(`novel_page_${novelId}`, pageNumber.toString());
-    }
-  }, [pageNumber, novelId]);
+    if (pageNumber <= 0) return;
+
+    // Her zaman LocalStorage'a kaydet
+    localStorage.setItem(`novel_page_${novelId}`, pageNumber.toString());
+
+    // Giriş yapmış kullanıcı için DB'ye kaydet (Debounce ile)
+    const saveToDb = async () => {
+      if (session?.user) {
+        try {
+          await fetch(`/api/novels/${novelId}/progress`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              page: pageNumber,
+              status: numPages > 0 && pageNumber === numPages ? "COMPLETED" : "READING",
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to save progress", err);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(saveToDb, 1000); // 1 saniye bekle
+
+    return () => clearTimeout(timeoutId);
+  }, [pageNumber, novelId, session, numPages]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);

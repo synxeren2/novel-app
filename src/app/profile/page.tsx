@@ -2,29 +2,46 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { User, Heart, Upload, BookOpen, Star, ArrowLeft } from "lucide-react";
+import { User, Heart, Upload, BookOpen, Star, ArrowLeft, CheckCircle, Clock, XCircle } from "lucide-react";
 import Link from "next/link";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("favorites");
+
+  const tabs = [
+    { id: "favorites", label: "Favoriler", icon: Heart, color: "text-red-500" },
+    { id: "reading", label: "Okuduklarım", icon: BookOpen, color: "text-blue-500" },
+    { id: "completed", label: "Bitenler", icon: CheckCircle, color: "text-green-500" },
+    { id: "onHold", label: "Bekleyenler", icon: Clock, color: "text-yellow-500" },
+    { id: "dropped", label: "Yarım Bıraktıklarım", icon: XCircle, color: "text-gray-500" },
+  ];
 
   useEffect(() => {
     if (session) {
       fetch("/api/user/profile")
-        .then(res => res.json())
+        .then((res) => res.json())
         .then(setData)
         .finally(() => setLoading(false));
     }
   }, [session]);
 
   if (!session) return <div className="text-center py-20">Lütfen giriş yapın.</div>;
-  if (loading) return <div className="text-center py-20 animate-pulse font-bold uppercase tracking-widest text-gray-500">Profil Yükleniyor...</div>;
+  if (loading)
+    return (
+      <div className="text-center py-20 animate-pulse font-bold uppercase tracking-widest text-gray-500">
+        Profil Yükleniyor...
+      </div>
+    );
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 space-y-12">
-      <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
+      >
         <ArrowLeft className="w-5 h-5" /> Geri Dön
       </Link>
 
@@ -34,7 +51,9 @@ export default function ProfilePage() {
           <User className="w-12 h-12 md:w-16 md:h-16 text-gray-400" />
         </div>
         <div className="text-center md:text-left space-y-2">
-          <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter">{session.user?.name || "Kullanıcı"}</h1>
+          <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter">
+            {session.user?.name || "Kullanıcı"}
+          </h1>
           <p className="text-gray-500 font-medium">{session.user?.email}</p>
           <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
             <span className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-300">
@@ -54,7 +73,7 @@ export default function ProfilePage() {
           <p className="text-3xl font-black">{data?.stats.totalFavorites || 0}</p>
           <p className="text-xs text-gray-500 font-bold uppercase">Kitap Kaydedildi</p>
         </div>
-        
+
         <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-1">
           <div className="flex items-center gap-2 text-blue-500 mb-2">
             <Upload className="w-5 h-5" />
@@ -74,35 +93,80 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Favorites Section */}
-      <section className="space-y-8">
-        <h2 className="text-2xl font-black uppercase tracking-tighter border-l-4 border-white pl-4">Kişisel Kitaplığım</h2>
-        
-        {data?.favorites.length === 0 ? (
+      {/* Library Tabs */}
+      <div className="space-y-8">
+        <div className="flex overflow-x-auto gap-2 pb-4 border-b border-white/10 scrollbar-hide">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold uppercase transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? "bg-white text-black shadow-lg shadow-white/10"
+                  : "bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+              }`}
+            >
+              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-black" : tab.color}`} />
+              {tab.label}
+              <span className="ml-1 opacity-60 text-xs">
+                ({data?.[tab.id]?.length || 0})
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Content Grid */}
+        {!data?.[activeTab] || data[activeTab].length === 0 ? (
           <div className="text-center py-20 bg-white/5 rounded-3xl border border-dashed border-white/10">
             <BookOpen className="w-12 h-12 mx-auto text-gray-700 mb-4" />
-            <p className="text-gray-500">Henüz favori kitap eklememişsiniz.</p>
-            <Link href="/" className="inline-block mt-4 text-white font-bold underline underline-offset-4">Keşfetmeye Başla</Link>
+            <p className="text-gray-500">Bu listede henüz kitap yok.</p>
+            <Link
+              href="/"
+              className="inline-block mt-4 text-white font-bold underline underline-offset-4 hover:text-blue-400"
+            >
+              Keşfetmeye Başla
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            {data?.favorites.map((novel: any) => (
-              <Link key={novel.id} href={`/novels/${novel.id}`} className="group space-y-2">
-                <div className="aspect-[3/4] relative rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10 group-hover:ring-white/30 transition-all shadow-xl">
+            {data[activeTab].map((novel: any) => (
+              <Link
+                key={novel.id}
+                href={`/novels/${novel.id}`}
+                className="group space-y-2 block"
+              >
+                <div className="aspect-[2/3] relative rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10 group-hover:ring-white/30 transition-all shadow-xl">
                   {novel.coverUrl ? (
-                    <img src={novel.coverUrl} alt={novel.title} className="w-full h-full object-cover" />
+                    <img
+                      src={novel.coverUrl}
+                      alt={novel.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <BookOpen className="w-8 h-8 text-zinc-800" />
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                      <BookOpen className="w-8 h-8 text-zinc-700" />
+                    </div>
+                  )}
+                  {/* Progress Badge */}
+                  {novel.progress && (
+                    <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md border border-white/10">
+                      S. {novel.progress}
                     </div>
                   )}
                 </div>
-                <h3 className="text-xs font-bold leading-tight line-clamp-2 uppercase">{novel.title}</h3>
+                <div>
+                  <h3 className="text-xs font-bold leading-tight line-clamp-2 uppercase group-hover:text-blue-400 transition-colors">
+                    {novel.title}
+                  </h3>
+                  {novel.author && (
+                    <p className="text-[10px] text-gray-500 mt-1 truncate">{novel.author}</p>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
         )}
-      </section>
+      </div>
     </div>
   );
 }
